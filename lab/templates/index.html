@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AI Visual Lab</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#home"><span class="logo">◈</span> AI Visual Lab</a>
+      <nav aria-label="Nawigacja">
+        <a href="#home">Przegląd</a>
+        <a href="#kmeans">K-Means</a>
+        <a href="#knn">KNN</a>
+        <a href="#gradient">Gradient Descent</a>
+      </nav>
+      <span class="badge">PROJEKT TPV</span>
+    </header>
+    <main>
+      <section id="home" class="page">
+        <p class="eyebrow">ML PLAYGROUND / 01</p>
+        <h1>Zrozum algorytmy.<br><span>Zobacz, jak się uczą.</span></h1>
+        <p class="lead">
+          Interaktywne laboratorium uczenia maszynowego. Zmieniaj dane, eksperymentuj z parametrami i obserwuj
+          każdy krok.
+        </p>
+        <div class="cards">
+          <a class="card active" href="#kmeans">
+            <span class="number">01 / KLASTERYZACJA</span>
+            <h2>K-Means <span>↗</span></h2>
+            <p>Od chmury punktów do uporządkowanych grup. Śledź ruch centroidów i spadek inertia.</p>
+            <b>Otwórz laboratorium →</b>
+          </a>
+          <a class="card" href="#knn">
+            <span class="number">02 / KLASYFIKACJA</span>
+            <h2>K-Nearest Neighbors</h2>
+            <p>Odkryj wpływ sąsiadów i metryki odległości na granice decyzyjne.</p>
+            <b>Moduł do integracji</b>
+          </a>
+          <a class="card" href="#gradient">
+            <span class="number">03 / OPTYMALIZACJA</span>
+            <h2>Gradient Descent</h2>
+            <p>Prześledź drogę do minimum funkcji i porównaj optymalizatory.</p>
+            <b>Moduł do integracji</b>
+          </a>
+        </div>
+      </section>
+      <section id="kmeans" class="page" hidden>
+        <p class="eyebrow">LABORATORIUM / KLASTERYZACJA</p>
+        <div class="title-row">
+          <div>
+            <h1>K-Means<span class="dot">.</span></h1>
+            <p class="lead">Znajdź strukturę ukrytą w danych.</p>
+          </div>
+          <span class="badge">PYTHON + NUMPY</span>
+        </div>
+        <div class="workspace">
+          <aside class="panel">
+            <h2>Generator danych</h2>
+            <label>
+              Liczba punktów
+              <input id="n" type="number" value="200" min="1" max="2000">
+            </label>
+            <label>
+              Liczba skupisk
+              <input id="clusters" type="number" value="3" min="1" max="12">
+            </label>
+            <label>
+              Szum (odchylenie standardowe)
+              <input id="noise" type="number" value="5" min="0" max="30" step="0.5">
+            </label>
+            <label>
+              Seed
+              <input id="seed" type="number" value="42" min="0" max="4294967295">
+            </label>
+            <button id="generate" class="primary">Wygeneruj dane</button>
+            <hr>
+            <h2>Parametry algorytmu</h2>
+            <label>
+              Liczba klastrów k
+              <input id="k" type="number" value="3" min="1" max="12">
+            </label>
+            <label>
+              Limit iteracji
+              <input id="limit" type="number" value="100" min="1" max="200">
+            </label>
+            <label>
+              Tempo animacji
+              <input id="speed" type="range" min="100" max="1500" value="650" step="50">
+            </label>
+            <label class="check">
+              <input id="compare" type="checkbox">
+              Porównaj z drugim k
+            </label>
+            <label id="second-label" hidden>
+              Drugie k
+              <input id="k2" type="number" value="5" min="1" max="12">
+            </label>
+            <hr>
+            <h2>Twoje zbiory</h2>
+            <label>
+              Nazwa zbioru
+              <input id="dataset-name" maxlength="60" placeholder="Mój eksperyment">
+            </label>
+            <button id="save">Zapisz w przeglądarce</button>
+            <label>
+              Zapisane zbiory
+              <select id="saved">
+                <option value="">Wybierz zbiór</option>
+              </select>
+            </label>
+            <div class="button-row">
+              <button id="load">Wczytaj</button>
+              <button id="delete">Usuń zapis</button>
+            </div>
+            <div class="button-row">
+              <button id="export">Eksport JSON</button>
+              <button id="import">Import JSON</button>
+            </div>
+            <input id="file" type="file" accept="application/json,.json" hidden>
+          </aside>
+          <div class="lab-main">
+            <div class="panel visualization">
+              <div class="plot-heading">
+                <h2>Przestrzeń danych <span id="count"></span></h2>
+                <select id="edit" aria-label="Tryb edycji">
+                  <option value="add">Kliknij: dodaj punkt</option>
+                  <option value="remove">Kliknij: usuń punkt</option>
+                </select>
+              </div>
+              <div id="plots">
+                <div>
+                  <canvas id="plot" aria-label="Wykres punktów i centroidów"></canvas>
+                  <p id="metrics" class="metrics"></p>
+                </div>
+                <div id="comparison" hidden>
+                  <canvas id="plot2" aria-label="Wykres drugiego eksperymentu"></canvas>
+                  <p id="metrics2" class="metrics"></p>
+                </div>
+              </div>
+              <div class="controls">
+                <button id="play" class="primary">▶ Uruchom</button>
+                <button id="pause">Ⅱ Pauza</button>
+                <button id="step">Krok →</button>
+                <button id="reset">↺ Reset</button>
+              </div>
+              <label>
+                Iteracja
+                <input id="timeline" type="range" value="0" min="0" max="0">
+              </label>
+              <p class="hint">
+                ● Punkty danych · ✕ Centroidy · linie pokazują ich dotychczasową drogę. Edycja danych resetuje
+                przebieg.
+              </p>
+            </div>
+            <div class="panel">
+              <h2>Historia inertia</h2>
+              <canvas id="loss" aria-label="Wykres inertia w kolejnych iteracjach"></canvas>
+            </div>
+            <details class="panel" open>
+              <summary>Jak działa K-Means?</summary>
+              <p>
+                1. Inicjalizacja k-means++ wybiera rozproszone centroidy. 2. Każdy punkt trafia do
+                najbliższego centroidu (odległość euklidesowa). 3. Centroid przesuwa się do średniej swojej
+                grupy. Kroki powtarzamy do zbieżności lub limitu iteracji.
+              </p>
+              <p>
+                <strong>Inertia</strong> to suma kwadratów odległości punktów od ich centroidów. Mniejsza wartość oznacza bardziej zwarte grupy, ale samo zwiększanie k zwykle ją zmniejsza — nie służy ona sama do wyboru najlepszego k. Iteracja 0 pokazuje inicjalizację. Dane są syntetyczne, bez etykiet klas; skupiska generatora i klastry algorytmu to osobne parametry.
+              </p>
+              <p>
+                Użyj tego samego seed, aby odtworzyć eksperyment. Przeciągaj suwak iteracji lub wybierz Krok.
+                Zapisy zbiorów są lokalne dla tej przeglądarki; eksport pozwala przekazać je zespołowi.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+      <section id="knn" class="page" hidden>
+        <p class="eyebrow">02 / KLASYFIKACJA</p>
+        <h1>K-Nearest Neighbors</h1>
+        <p class="lead">Miejsce na moduł drugiej osoby w zespole.</p>
+        <div class="panel">
+          <h2>Gotowe do integracji</h2>
+          <p>
+            Wspólny generator i format danych [x, y] są dostępne. Klasyfikator będzie wymagał dodatkowych
+            etykiet klas. Interfejs API i instrukcja rozszerzenia znajdują się w README.
+          </p>
+          <a href="#kmeans">Przejdź do generatora i K-Means →</a>
+        </div>
+      </section>
+      <section id="gradient" class="page" hidden>
+        <p class="eyebrow">03 / OPTYMALIZACJA</p>
+        <h1>Gradient Descent</h1>
+        <p class="lead">Miejsce na moduł trzeciej osoby w zespole.</p>
+        <div class="panel">
+          <h2>Gotowe do integracji</h2>
+          <p>
+            Istniejący notebook pozostaje materiałem źródłowym. Funkcje algorytmu można przenieść do
+            lab/algorithms, a endpointy dodać jako osobny Blueprint.
+          </p>
+          <a href="#kmeans">Otwórz działające laboratorium →</a>
+        </div>
+      </section>
+      <p id="status" role="status" aria-live="polite"></p>
+    </main>
+    <footer>AI VISUAL LAB <span>Eksperymentuj. Obserwuj. Zrozum.</span></footer>
+  </body>
+</html>
