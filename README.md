@@ -1,6 +1,6 @@
 # AI Visual Lab — Projekt TPV
 
-Interaktywna aplikacja edukacyjna dla trzyosobowego zespołu. Backend i obliczenia: Python, Flask, NumPy. Frontend: HTML/CSS i JavaScript Canvas, bez Node.js i budowania bundla. K-Means jest zaimplementowany samodzielnie, bez scikit-learn. Notebook `Gradient Descent.ipynb` pozostaje bez zmian.
+Interaktywna aplikacja edukacyjna dla trzyosobowego zespołu. Backend i obliczenia: Python, Flask, NumPy. Frontend: HTML/CSS i JavaScript Canvas, bez Node.js i budowania bundla. K-Means jest zaimplementowany samodzielnie, bez scikit-learn.
 
 ## Uruchomienie (Python 3.11+)
 
