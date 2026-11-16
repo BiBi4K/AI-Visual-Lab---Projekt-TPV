@@ -24,7 +24,7 @@ Aplikacja uruchamia serwer produkcyjny Waitress. Otwórz http://127.0.0.1:5000. 
 - Porównanie dwóch wartości k na dokładnie tych samych danych i z tym samym seed, obok siebie (na wąskich ekranach pionowo). Dwa przebiegi mają wspólną oś iteracji; krótszy pozostaje na końcowym stanie.
 - Konfiguracja CI sprawdzająca zależności i składnię plików Python, bez testów automatycznych.
 
-KNN i Gradient Descent mają strony integracyjne, bez pozorowania działających algorytmów. Ich implementacja należy do pozostałych osób w zespole. Hosting publiczny wymaga wdrożenia we własnym koncie; repozytorium zawiera instrukcję, nie aktywną usługę.
+KNN ma stronę integracyjną. Gradient Descent jest zintegrowany z aplikacją na podstawie istniejącego notebooka. Hosting publiczny wymaga wdrożenia we własnym koncie; repozytorium zawiera instrukcję, nie aktywną usługę.
 
 ## Architektura
 
@@ -45,7 +45,7 @@ Wszystkie dane eksperymentu są przesyłane w żądaniu, serwer nie przechowuje 
 ### Integracja KNN i Gradient Descent
 
 1. Dodaj czysty moduł `lab/algorithms/knn.py` lub `gradient_descent.py` z obliczeniami niezależnymi od HTTP.
-2. Dodaj osobny Flask `Blueprint` w pliku `lab/knn_routes.py` / `lab/gradient_routes.py` i zarejestruj go w `create_app()` przez `app.register_blueprint(...)`. Endpointy umieść pod `/api/knn` i `/api/gradient`.
+2. Dodaj endpoint w `create_app()` w `lab/__init__.py`, tak jak dla K-Means i Gradient Descent. Endpoint KNN umieść pod `/api/knn`.
 3. Zastąp sekcję `#knn` lub `#gradient` w szablonie swoim interfejsem. Logikę frontendową dodaj w osobnym pliku JS, aby ograniczyć konflikty ze wspólnym `app.js`. Nie używaj globalnych nazw zmiennych (IIFE lub moduł ES).
 4. Wspólny format zbioru: `{"version":1,"points":[[x,y],...]}`. Współrzędne: skończone liczby w [-1000,1000]. KNN potrzebuje też `labels` i osobnej walidacji zgodności etykiet z punktami. Gradient Descent może wymagać innego wejścia, zależnie od wybranej funkcji celu.
 5. Użyj generatora przez `POST /api/datasets/generate` lub zaimportuj wyeksportowany JSON.
@@ -96,3 +96,11 @@ waitress-serve --listen=127.0.0.1:8080 --call lab:create_app
 ```
 
 `python app.py` uruchamia Waitress pod adresem `127.0.0.1:5000`, bez debuggera i automatycznego przeładowywania. Adres `0.0.0.0` w poleceniu hostingowym udostępnia serwer na wszystkich interfejsach. Wdrożenie wymaga konta i konfiguracji domeny/HTTPS po stronie dostawcy. Aplikacja nie wymaga bazy danych ani kluczy API. Font Google jest opcjonalny — bez sieci działa font systemowy.
+
+## Gradient Descent
+
+Widok `#gradient` dopasowuje prostą do danych `y = 4 + 3x + szum`. Kod z notebooka przeniesiono do `lab/algorithms/gradient_descent.py`; notebook pozostaje bez zmian. Endpoint w `lab/__init__.py` udostępnia `POST /api/gradient`. Interfejs w `lab/static/gradient.js` pokazuje punkty, dopasowane proste, historię połowy MSE, parametry wag oraz status przebiegu. Dostępne są start, pauza, krok, reset, tempo i suwak historii oraz opcjonalna skala logarytmiczna błędu.
+
+Przykładowe żądanie: `{"n":40,"noise":0.5,"seed":50,"mode":"GD","learning_rate":0.1,"max_iterations":120,"beta":0.44,"compare":true}`. Tryby: GD, SGD, Momentum. Limity: 5–1000 próbek, szum 0–10, LR 0.0001–2, 5–500 iteracji, beta 0–0.99. Odpowiedź zawiera `points`, `seed` i `runs`; każdy przebieg zawiera `mode`, `learning_rate`, `beta`, `diverged` i `history` z klatkami `{iteration, theta: [b, a], loss}`. Klatka 0 to inicjalizacja; krok SGD oznacza całą epokę.
+
+Porównanie dodaje standardowe konfiguracje z notebooka (GD LR 0.1, SGD LR 0.01, Momentum LR 0.05 / beta 0.9). Wszystkie metody otrzymują te same dane i początkowe wagi. Generator NumPy jest lokalny i deterministyczny; wartości nie muszą być identyczne z notebookiem korzystającym z globalnego generatora. Błąd ponad 10¹² lub wynik nieskończony zatrzymuje dany przebieg i oznacza rozbieżność. Krótszy przebieg pozostaje na ostatniej prawidłowej klatce. Koniec limitu nie oznacza zbieżności.

@@ -6,6 +6,7 @@
     <title>AI Visual Lab</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/app.js" defer></script>
+    <script src="/static/gradient.js" defer></script>
   </head>
   <body>
     <header>
@@ -39,11 +40,11 @@
             <p>Odkryj wpływ sąsiadów i metryki odległości na granice decyzyjne.</p>
             <b>Moduł do integracji</b>
           </a>
-          <a class="card" href="#gradient">
+          <a class="card active" href="#gradient">
             <span class="number">03 / OPTYMALIZACJA</span>
             <h2>Gradient Descent</h2>
             <p>Prześledź drogę do minimum funkcji i porównaj optymalizatory.</p>
-            <b>Moduł do integracji</b>
+            <b>Otwórz laboratorium →</b>
           </a>
         </div>
       </section>
@@ -192,15 +193,51 @@
       </section>
       <section id="gradient" class="page" hidden>
         <p class="eyebrow">03 / OPTYMALIZACJA</p>
-        <h1>Gradient Descent</h1>
-        <p class="lead">Miejsce na moduł trzeciej osoby w zespole.</p>
-        <div class="panel">
-          <h2>Gotowe do integracji</h2>
-          <p>
-            Istniejący notebook pozostaje materiałem źródłowym. Funkcje algorytmu można przenieść do
-            lab/algorithms, a endpointy dodać jako osobny Blueprint.
-          </p>
-          <a href="#kmeans">Otwórz działające laboratorium →</a>
+        <h1>Gradient Descent<span class="dot">.</span></h1>
+        <p class="lead">Dopasuj prostą do danych i obserwuj, jak optymalizator zmniejsza błąd.</p>
+        <div class="workspace">
+          <aside class="panel">
+            <h2>Dane i parametry</h2>
+            <label>Liczba próbek<input id="gd-n" type="number" min="5" max="1000" value="40"></label>
+            <label>Szum (odchylenie standardowe)<input id="gd-noise" type="number" min="0" max="10" step="0.1" value="0.5"></label>
+            <label>Seed<input id="gd-seed" type="number" min="0" max="4294967295" value="50"></label>
+            <hr>
+            <label>Optymalizator<select id="gd-mode"><option>GD</option><option>SGD</option><option>Momentum</option></select></label>
+            <label>Learning rate<input id="gd-lr" type="number" min="0.0001" max="2" step="any" value="0.1"></label>
+            <label id="gd-beta-label" hidden>Beta (momentum)<input id="gd-beta" type="number" min="0" max="0.99" step="0.01" value="0.44"></label>
+            <label>Limit iteracji / epok<input id="gd-limit" type="number" min="5" max="500" value="120"></label>
+            <label class="check"><input id="gd-compare" type="checkbox">Porównaj ze standardowymi konfiguracjami</label>
+            <p class="hint">GD: LR 0.1 · SGD: LR 0.01 · Momentum: LR 0.05, beta 0.9. Wszystkie przebiegi mają te same dane i początkowe wagi.</p>
+            <label>Tempo animacji<input id="gd-speed" type="range" min="50" max="1000" value="250" step="50"></label>
+            <p class="hint">Zmiana parametrów resetuje eksperyment. Seed odtwarza dane i początkowe wagi.</p>
+          </aside>
+          <div class="lab-main">
+            <div class="panel">
+              <h2>Dopasowanie prostej: y = b + a · x</h2>
+              <canvas id="gd-plot" aria-label="Punkty regresji i proste dopasowane przez optymalizatory"></canvas>
+              <div id="gd-legend" class="hint"></div>
+              <div class="controls">
+                <button id="gd-play" class="primary">Uruchom / wznów</button>
+                <button id="gd-pause">Pauza</button>
+                <button id="gd-step">Krok</button>
+                <button id="gd-reset">Reset</button>
+              </div>
+              <label>Iteracja / epoka <span id="gd-position">0</span><input id="gd-timeline" type="range" min="0" max="0" value="0"></label>
+              <div id="gd-metrics" class="metrics" role="status" aria-live="polite"></div>
+              <p id="gd-status" class="hint" role="status" aria-live="polite"></p>
+            </div>
+            <div class="panel">
+              <h2>Historia błędu: ½ MSE</h2>
+              <label class="check"><input id="gd-log" type="checkbox">Skala logarytmiczna błędu</label>
+              <canvas id="gd-loss" aria-label="Historia funkcji straty w kolejnych iteracjach"></canvas>
+            </div>
+            <details class="panel" open>
+              <summary>Jak działa Gradient Descent?</summary>
+              <p>Dane powstają według y = 4 + 3x + szum, gdzie x należy do [0, 2]. Algorytm uczy się wyrazu wolnego b i nachylenia a. Minimalizujemy połowę średniego kwadratu błędu: sumę (przewidywanie − y)² podzieloną przez 2n.</p>
+              <p>GD aktualizuje wagi na podstawie wszystkich próbek. SGD aktualizuje je po każdej próbce w losowej kolejności; jeden krok animacji to cała epoka. Momentum dodaje pamięć poprzednich aktualizacji. Iteracja 0 pokazuje wspólną inicjalizację.</p>
+              <p>Zbyt duży learning rate może zwiększać błąd. Przebieg zatrzymujemy przy błędzie większym niż 10¹² lub utracie stabilności numerycznej. To sygnał rozbieżności, a nie osiągnięcia minimum. Zakończenie limitu iteracji również nie oznacza zbieżności. Pauza zatrzymuje odtwarzanie wcześniej obliczonej historii.</p>
+            </details>
+          </div>
         </div>
       </section>
       <p id="status" role="status" aria-live="polite"></p>

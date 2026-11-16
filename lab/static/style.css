@@ -437,3 +437,6 @@ footer {
   }
 
 }
+
+#gd-loss { height: 240px; }
+#gd-metrics { overflow-wrap: anywhere; }

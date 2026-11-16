@@ -1,4 +1,5 @@
-"""Application factory. Register teammates' blueprints here."""
+"""Application factory and API endpoints."""
+from .algorithms.gradient_descent import gradient_descent
 from .algorithms.kmeans import kmeans
 from .datasets import generate
 
@@ -30,6 +31,12 @@ def create_app():
         body = payload()
         return jsonify(kmeans(body.get("points"), body.get("k", 3),
                               body.get("seed", 42), body.get("max_iterations", 100)))
+
+    @app.post("/api/gradient")
+    def run_gradient():
+        body = payload()
+        keys = ("n", "noise", "seed", "mode", "learning_rate", "max_iterations", "beta", "compare")
+        return jsonify(gradient_descent(**{key: body[key] for key in keys if key in body}))
 
     @app.errorhandler(ValueError)
     @app.errorhandler(BadRequest)
