@@ -6,6 +6,7 @@
     <title>AI Visual Lab</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/app.js" defer></script>
+    <script src="/static/knn.js" defer></script>
     <script src="/static/gradient.js" defer></script>
   </head>
   <body>
@@ -34,11 +35,11 @@
             <p>Od chmury punktów do uporządkowanych grup. Śledź ruch centroidów i spadek inertia.</p>
             <b>Otwórz laboratorium →</b>
           </a>
-          <a class="card" href="#knn">
+          <a class="card active" href="#knn">
             <span class="number">02 / KLASYFIKACJA</span>
-            <h2>K-Nearest Neighbors</h2>
+            <h2>K-Nearest Neighbors <span>↗</span></h2>
             <p>Odkryj wpływ sąsiadów i metryki odległości na granice decyzyjne.</p>
-            <b>Moduł do integracji</b>
+            <b>Otwórz laboratorium →</b>
           </a>
           <a class="card active" href="#gradient">
             <span class="number">03 / OPTYMALIZACJA</span>
@@ -178,19 +179,7 @@
           </div>
         </div>
       </section>
-      <section id="knn" class="page" hidden>
-        <p class="eyebrow">02 / KLASYFIKACJA</p>
-        <h1>K-Nearest Neighbors</h1>
-        <p class="lead">Miejsce na moduł drugiej osoby w zespole.</p>
-        <div class="panel">
-          <h2>Gotowe do integracji</h2>
-          <p>
-            Wspólny generator i format danych [x, y] są dostępne. Klasyfikator będzie wymagał dodatkowych
-            etykiet klas. Interfejs API i instrukcja rozszerzenia znajdują się w README.
-          </p>
-          <a href="#kmeans">Przejdź do generatora i K-Means →</a>
-        </div>
-      </section>
+      {% include "knn.html" %}
       <section id="gradient" class="page" hidden>
         <p class="eyebrow">03 / OPTYMALIZACJA</p>
         <h1>Gradient Descent<span class="dot">.</span></h1>

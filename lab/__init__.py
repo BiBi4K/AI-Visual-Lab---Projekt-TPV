@@ -32,6 +32,16 @@ def create_app():
         return jsonify(kmeans(body.get("points"), body.get("k", 3),
                               body.get("seed", 42), body.get("max_iterations", 100)))
 
+    @app.post("/api/knn/generate")
+    def knn_dataset():
+        from .algorithms.knn_web import dataset
+        return jsonify(dataset(payload()))
+
+    @app.post("/api/knn")
+    def run_knn():
+        from .algorithms.knn_web import classify
+        return jsonify(classify(payload()))
+
     @app.post("/api/gradient")
     def run_gradient():
         body = payload()

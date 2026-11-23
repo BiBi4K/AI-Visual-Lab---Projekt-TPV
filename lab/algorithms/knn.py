@@ -1,4 +1,4 @@
-"""Interactive 2D KNN playground. Run: python3 knn_visualizer.py.
+"""Interactive 2D KNN playground. Run: python3 knn.py.
 
 The UI uses Tkinter; plotting uses Matplotlib. The small, separate knn_core.py
 contains the algorithm so you can study it without reading the interface code.
@@ -7,7 +7,7 @@ contains the algorithm so you can study it without reading the interface code.
 from __future__ import annotations
 
 import argparse
-import csv
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -20,33 +20,16 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 
-from knn_core import DatasetConfig, ModelConfig, KNNModel, generate_dataset
+if __package__:
+    from .knn_core import DatasetConfig, ModelConfig, KNNModel, generate_dataset, plot_limits, distance_outline, training_data
+else:
+    from knn_core import DatasetConfig, ModelConfig, KNNModel, generate_dataset, plot_limits, distance_outline, training_data
 
 
 COLORS = ["#2878bf", "#e58027", "#209781", "#9361b5", "#d64e65", "#9d8035"]
 MARKERS = ["o", "s", "^", "D", "v", "P"]
 CMAP = ListedColormap(COLORS)
 NORM = BoundaryNorm(np.arange(-0.5, len(COLORS) + 0.5), len(COLORS))
-
-
-def plot_limits(points):
-    """Return a square view with space to click outside the training clusters."""
-    center = (points.min(axis=0) + points.max(axis=0)) / 2
-    radius = max(float(np.ptp(points, axis=0).max()) * 0.64, 1.0)
-    return (center[0] - radius, center[0] + radius), (center[1] - radius, center[1] + radius)
-
-
-def distance_outline(model, point, radius):
-    """Map the selected distance's radius back into the original feature units."""
-    theta = np.linspace(0, 2 * np.pi, 401)
-    directions = np.column_stack((np.cos(theta), np.sin(theta)))
-    metric = model.config.metric
-    if metric == "chebyshev":
-        norm = np.abs(directions).max(axis=1)
-    else:
-        p = {"euclidean": 2, "manhattan": 1}.get(metric, model.config.p)
-        norm = (np.abs(directions) ** p).sum(axis=1) ** (1 / p)
-    return point + directions / norm[:, None] * radius * model.scale_
 
 
 def draw_plot(ax, X, y, model, queries, limits, options, added=None, background=None):
@@ -227,7 +210,7 @@ class KNNApp:
         ttk.Button(actions, text="Undo edit", command=self.undo).pack(side="left", fill="x", expand=True)
         ttk.Button(actions, text="Clear queries", command=self.clear_queries).pack(side="left", fill="x", expand=True, padx=(5, 0))
         ttk.Button(sidebar, text="Reset plot view", command=self.reset_view).pack(fill="x", pady=(12, 5))
-        ttk.Button(sidebar, text="Export training data (.csv)", command=self.export_csv).pack(fill="x")
+        ttk.Button(sidebar, text="Export training data (.json)", command=self.export_json).pack(fill="x")
 
         right = ttk.Frame(body)
         right.pack(side="left", fill="both", expand=True)
@@ -371,11 +354,9 @@ class KNNApp:
                                    imbalance=self._number(self.data_vars, "imbalance", 0.1, 1),
                                    seed=self._number(self.data_vars, "seed", 0, 999999, True))
             stretch = self._number(self.data_vars, "stretch", 0.1, 10)
-            angle = np.deg2rad(self._number(self.data_vars, "rotation", 0, 180))
+            rotation = self._number(self.data_vars, "rotation", 0, 180)
             model_config, _ = self._get_model_config(), self._get_view()
-            X, y = generate_dataset(config)
-            X[:, 0] *= stretch
-            X = X @ np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+            X, y = generate_dataset(config, stretch, rotation)
             model = KNNModel(model_config).fit(X, y)
         except (ValueError, self.tk.TclError) as exc:
             self.status_var.set(f"Check the settings: {exc}")
@@ -515,17 +496,15 @@ class KNNApp:
             if limits != self._drawn_limits:
                 self._schedule()
 
-    def export_csv(self):
+    def export_json(self):
         from tkinter import filedialog
         destination = filedialog.asksaveasfilename(parent=self.root, title="Export training data",
-                                                   defaultextension=".csv", initialfile="knn_training_data.csv", filetypes=[("CSV", "*.csv")])
+                                                   defaultextension=".json", initialfile="knn_training_data.json", filetypes=[("JSON", "*.json")])
         if not destination:
             return
         try:
-            with open(destination, "w", newline="", encoding="utf-8") as stream:
-                writer = csv.writer(stream)
-                writer.writerow(["feature_1", "feature_2", "class", "added_by_click"])
-                writer.writerows((x[0], x[1], int(label), int(added)) for x, label, added in zip(self.X, self.y, self.added))
+            with open(destination, "w", encoding="utf-8") as stream:
+                json.dump(training_data(self.X, self.y, self.added), stream, indent=2)
         except OSError as exc:
             self.status_var.set(f"Could not save: {exc}")
             return

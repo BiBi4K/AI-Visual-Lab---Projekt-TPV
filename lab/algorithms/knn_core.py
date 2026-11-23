@@ -73,7 +73,7 @@ def _class_counts(total, classes, imbalance):
     return counts
 
 
-def generate_dataset(config: DatasetConfig):
+def _generate_pattern(config: DatasetConfig):
     """Return reproducible ``X: (n, 2)`` and integer class labels ``y: (n,)``.
 
     ``noise`` is the standard deviation of Gaussian coordinate noise in plot
@@ -136,6 +136,38 @@ def generate_dataset(config: DatasetConfig):
     X = X + rng.normal(0, noise, X.shape)
     order = rng.permutation(total)
     return X[order], y[order].astype(int)
+
+
+def generate_dataset(config: DatasetConfig, stretch=1, rotation=0):
+    X, y = _generate_pattern(config)
+    X[:, 0] *= _number(stretch, "Stretch", 0.1, 10)
+    angle = np.deg2rad(_number(rotation, "Rotation", 0, 180))
+    transform = np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+    return X @ transform, y
+
+
+def training_data(X, y, added):
+    return dict(version=1, points=X.tolist(), labels=y.tolist(), added_by_click=added.tolist())
+
+
+def plot_limits(points):
+    """Return a square view with space to click outside the training clusters."""
+    center = (points.min(axis=0) + points.max(axis=0)) / 2
+    radius = max(float(np.ptp(points, axis=0).max()) * 0.64, 1.0)
+    return (center[0] - radius, center[0] + radius), (center[1] - radius, center[1] + radius)
+
+
+def distance_outline(model, point, radius):
+    """Map the selected distance's radius back into the original feature units."""
+    theta = np.linspace(0, 2 * np.pi, 401)
+    directions = np.column_stack((np.cos(theta), np.sin(theta)))
+    metric = model.config.metric
+    if metric == "chebyshev":
+        norm = np.abs(directions).max(axis=1)
+    else:
+        p = {"euclidean": 2, "manhattan": 1}.get(metric, model.config.p)
+        norm = (np.abs(directions) ** p).sum(axis=1) ** (1 / p)
+    return point + directions / norm[:, None] * radius * model.scale_
 
 
 class KNNModel:

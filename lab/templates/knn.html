@@ -1,0 +1,66 @@
+{% macro numeric(key, label, value, lo, hi, step=1) -%}
+<label>{{ label }}<input id="knn-{{ key }}" type="number" required value="{{ value }}" min="{{ lo }}" max="{{ hi }}" step="{{ step }}"></label>
+{%- endmacro %}
+<section id="knn" class="page" hidden>
+  <p class="eyebrow">02 / KLASYFIKACJA</p>
+  <h1>K-Nearest Neighbors<span class="dot">.</span></h1>
+  <p class="lead">Kliknij wykres i sprawdź, którzy sąsiedzi decydują o klasie punktu.</p>
+  <div class="workspace">
+    <aside class="panel">
+      <details open><summary>Generator danych</summary>
+        <label>Wzór<select id="knn-dataset">{% for name in ['Blobs','Moons','Circles','Spirals','XOR'] %}<option>{{ name }}</option>{% endfor %}</select></label>
+        {{ numeric('n_samples','Liczba punktów',180,20,1200) }}
+        {{ numeric('n_classes','Liczba klas',3,2,6) }}
+        {{ numeric('noise','Szum',0.65,0,2,'any') }}
+        {{ numeric('separation','Rozmiar wzoru',3,0.2,8,'any') }}
+        {{ numeric('imbalance','Liczebność ostatniej klasy względem pozostałych',1,0.1,1,'any') }}
+        {{ numeric('seed','Seed',42,0,999999) }}
+        {{ numeric('stretch','Rozciągnięcie cechy 1',1,0.1,10,'any') }}
+        {{ numeric('rotation','Obrót (°)',0,0,180,'any') }}
+        <button id="knn-generate" class="primary">Wygeneruj dane</button>
+        <button id="knn-random">Losuj seed i wygeneruj</button>
+        <p class="hint">Generowanie usuwa dotychczasowe edycje i zapytania.</p>
+      </details>
+      <details id="knn-model" open><summary>Parametry modelu</summary>
+        {{ numeric('k','Liczba sąsiadów k',5,1,100) }}
+        <label>Metryka<select id="knn-metric"><option value="euclidean">Euklidesowa</option><option value="manhattan">Manhattan</option><option value="chebyshev">Czebyszewa</option><option value="minkowski">Minkowskiego</option></select></label>
+        {{ numeric('p','Wykładnik Minkowskiego p',2,1,8,'any') }}
+        <label>Głosowanie<select id="knn-weights"><option value="uniform">Równe wagi</option><option value="distance">Według odległości</option></select></label>
+        <label class="check"><input id="knn-standardize" type="checkbox">Standaryzuj cechy</label>
+      </details>
+      <details id="knn-display"><summary>Wygląd wykresu</summary>
+        {% for key,label in [('regions','Obszary decyzyjne'),('neighbors','Wyróżnij sąsiadów'),('radius','Odległość do k-tego sąsiada'),('ranks','Numery sąsiadów'),('grid','Siatka')] %}
+        <label class="check"><input id="knn-{{ key }}" type="checkbox" {% if key != 'ranks' %}checked{% endif %}>{{ label }}</label>
+        {% endfor %}
+        {{ numeric('resolution','Rozdzielczość obszarów',100,40,200) }}
+        {{ numeric('point_size','Rozmiar punktów',48,15,120,'any') }}
+      </details>
+      <button id="knn-export">Eksport danych JSON</button>
+    </aside>
+    <div class="lab-main">
+      <div class="panel">
+        <div class="plot-heading"><h2 id="knn-summary">Przestrzeń cech</h2>
+          <select id="knn-mode" aria-label="Tryb wykresu">
+            <option value="predict">Kliknij: przewiduj klasę</option><option value="add">Kliknij: dodaj punkt</option>
+            <option value="remove">Kliknij: usuń punkt</option><option value="pan">Przeciągnij: przesuń widok</option>
+            <option value="zoom">Zaznacz obszar: powiększ</option>
+          </select>
+        </div>
+        <label id="knn-label-row" hidden>Klasa dodawanego punktu<select id="knn-label"></select></label>
+        <canvas id="knn-plot" aria-label="Punkty treningowe i obszary decyzyjne KNN"></canvas>
+        <div class="controls">
+          <button id="knn-undo">Cofnij edycję</button><button id="knn-clear">Usuń zapytania</button>
+          <button id="knn-home">Dopasuj widok</button><button id="knn-back">Poprzedni widok</button>
+          <button id="knn-forward">Następny widok</button><button id="knn-save">Zapisz wykres PNG</button>
+        </div>
+        <p id="knn-status" class="hint" role="status"></p>
+      </div>
+      <div class="panel">
+        <h2>Jak powstała prognoza?</h2>
+        <p id="knn-prediction" class="metrics" role="status"></p>
+        <p class="hint">Udział głosów pokazuje poparcie wśród wybranych sąsiadów. Przy remisie wygrywa klasa z najniższym numerem.</p>
+        <div id="knn-neighbors-box" hidden><table><thead><tr><th>Pozycja</th><th>Klasa</th><th>Odległość</th><th>Udział głosu</th></tr></thead><tbody id="knn-rows"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</section>
