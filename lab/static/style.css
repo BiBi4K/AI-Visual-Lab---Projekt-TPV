@@ -440,3 +440,13 @@ footer {
 
 #gd-loss { height: 240px; }
 #gd-metrics { overflow-wrap: anywhere; }
+
+#knn aside { align-self: start; }
+#knn aside details { border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+#knn aside summary { padding-bottom: 16px; }
+#knn-plot { height: auto; aspect-ratio: 1.25; touch-action: none; cursor: crosshair; }
+#knn-label-row { margin: 14px 0 0; max-width: 180px; }
+#knn-neighbors-box { max-height: 220px; overflow: auto; }
+#knn table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: right; }
+#knn th, #knn td { padding: 7px; border-bottom: 1px solid var(--line); }
+#knn th { position: sticky; top: 0; background: white; }

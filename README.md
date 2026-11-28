@@ -24,7 +24,7 @@ Aplikacja uruchamia serwer produkcyjny Waitress. Otwórz http://127.0.0.1:5000. 
 - Porównanie dwóch wartości k na dokładnie tych samych danych i z tym samym seed, obok siebie (na wąskich ekranach pionowo). Dwa przebiegi mają wspólną oś iteracji; krótszy pozostaje na końcowym stanie.
 - Konfiguracja CI sprawdzająca zależności i składnię plików Python, bez testów automatycznych.
 
-KNN ma stronę integracyjną. Gradient Descent jest zintegrowany z aplikacją na podstawie istniejącego notebooka. Hosting publiczny wymaga wdrożenia we własnym koncie; repozytorium zawiera instrukcję, nie aktywną usługę.
+KNN jest dostępny z menu i pod adresem `/#knn`. Gradient Descent jest zintegrowany z aplikacją na podstawie istniejącego notebooka. Hosting publiczny wymaga wdrożenia we własnym koncie; repozytorium zawiera instrukcję, nie aktywną usługę.
 
 ## Architektura
 
@@ -42,13 +42,11 @@ Backend oblicza kompletną historię przebiegu; przeglądarka odtwarza jej klatk
 
 Wszystkie dane eksperymentu są przesyłane w żądaniu, serwer nie przechowuje danych użytkowników. Zapisane zbiory pozostają w danej przeglądarce i domenie; czyszczenie danych witryny je usuwa. JSON służy do przenoszenia danych. Eksport zawiera dane, nie konfigurację eksperymentu.
 
-### Integracja KNN i Gradient Descent
+### KNN
 
-1. Dodaj czysty moduł `lab/algorithms/knn.py` lub `gradient_descent.py` z obliczeniami niezależnymi od HTTP.
-2. Dodaj endpoint w `create_app()` w `lab/__init__.py`, tak jak dla K-Means i Gradient Descent. Endpoint KNN umieść pod `/api/knn`.
-3. Zastąp sekcję `#knn` lub `#gradient` w szablonie swoim interfejsem. Logikę frontendową dodaj w osobnym pliku JS, aby ograniczyć konflikty ze wspólnym `app.js`. Nie używaj globalnych nazw zmiennych (IIFE lub moduł ES).
-4. Wspólny format zbioru: `{"version":1,"points":[[x,y],...]}`. Współrzędne: skończone liczby w [-1000,1000]. KNN potrzebuje też `labels` i osobnej walidacji zgodności etykiet z punktami. Gradient Descent może wymagać innego wejścia, zależnie od wybranej funkcji celu.
-5. Użyj generatora przez `POST /api/datasets/generate` lub zaimportuj wyeksportowany JSON.
+Widok `#knn` korzysta z tego samego generatora i klasyfikatora NumPy co okno desktopowe. Wybierz wzór i wygeneruj dane. Kliknij wykres, aby zobaczyć klasę zapytania, najbliższych sąsiadów, ich odległości i udziały głosów. Zmiany modelu aktualizują również wcześniejsze zapytania. Menu nad wykresem pozwala dodawać i usuwać punkty, przesuwać widok oraz powiększać zaznaczenie.
+
+`POST /api/knn/generate` przyjmuje ustawienia generatora. Eksport treningowy w obu wersjach zapisuje JSON z polami `version`, `points`, `labels` i `added_by_click`. Elementy trzech tablic o tym samym indeksie opisują jeden punkt treningowy. `POST /api/knn` przyjmuje punkty, etykiety, parametry modelu i zapytania. Opcjonalne `resolution` i `bounds` włączają obliczenie siatki obszarów decyzyjnych.
 
 ### API
 
